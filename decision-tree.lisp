@@ -146,28 +146,44 @@ sample-space gives the training data as ((attribute1 val attribute2 val2 ...) ..
        (eval sample-space)
        'item)))
 
+;;; decision tree for and 
+(macroexpand-1 '(define-decision-tree and-tree
+                 :value
+                 '(:true :false)
+               
+                 '(:a (:true :false) :b (:true :false))
 
-(define-decision-tree even-or-odd
-    :parity
-  
-  '(:even :odd)
-  
-  '(:value (2 3 5) :max-likes (:yes :no) :is-done (:yes :no))
-  
-  '((:value 2 :parity :even :max-likes :yes :is-done :no)
-    (:value 3 :parity :odd :max-likes :yes :is-done :yes)
-    (:value 5 :parity :odd :max-likes :yes :is-done :yes)))
+                 '((:value :true :a :true :b :true)
+                   (:value :false :a :false :b :true)
+                   (:value :false :a :true :b :false)
+                   (:value :false :a :false :b :false))))
 
-;; (even-or-odd '(:value 5 :max-likes :yes :is-done :no))
+;;; decision tree for or
+(macroexpand-1 '(define-decision-tree or-tree
+                 :value
+                 '(:true :false)
 
-;; (format t "~a~%"  (make-decision-tree
-;;             :parity
-;;             '(:even :odd)
-;;             '(:value (2 3 5) :max-likes (:yes :no) :is-done (:yes :no))
-;;             '((:value 2 :parity :even :max-likes :yes :is-done :no)
-;;               (:value 5 :parity :odd :max-likes :yes :is-done :yes)
-;;               (:value 3 :parity :even :max-likes :no :is-done :yes))
-;;             'test))
+                 '(:a (:true :false) :b (:true :false))
+
+                 '((:value :true :a :true :b :true)
+                   (:value :true :a :true :b :false)
+                   (:value :true :a :false :b :true)
+                   (:value :false :a :false :b :false))))
+
+;;; decision tree for xor
+(format t "~a~%" (macroexpand-1 '(define-decision-tree xor-tree
+                                  :value
+                                  '(:true :false)
+
+                                  '(:a (:true :false) :b (:true :false))
+
+                                  '((:value :false :a :true :b :true)
+                                    (:value :true :a :true :b :false)
+                                    (:value :false :a :false :b :false)
+                                    (:value :true :a :false :b :true)))))
+
+(xor-tree '(:a :true :b :true))
+;;; These are the tests of the various components
 
 ;; (most-common-value :parity '((:value 2 :parity :even)
 ;;                              (:value 5 :parity :odd)
