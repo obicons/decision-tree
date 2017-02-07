@@ -1,12 +1,10 @@
 (defpackage :decision-tree
-  (:use :cl))
+  (:use :cl :utils)
+  (:export define-decision-tree))
 
 (in-package #:decision-tree)
 
-(defun filter (seq predicate)
-  "Returns all items in seq that satisfy predicate"
-  (loop for item in seq
-     when (funcall predicate item) collect item))
+(defvar *tree-definition-list* '())
 
 (defun attribute-eq-func (attribute value &optional (p #'eq))
   "Returns a function that determines whether or not an instance
@@ -17,8 +15,8 @@ has value for attribute."
 (defun proportion (attribute value sample-space)
   "Returns the proportion of items in sample-space that have 
 attribute eq to value."
-  (/ (length (filter sample-space
-                     (attribute-eq-func attribute value)))
+  (/ (length (utils:filter sample-space
+                           (attribute-eq-func attribute value)))
      (length sample-space)))
 
 (defun entropy (attribute possible-values sample-space)
@@ -35,34 +33,16 @@ attribute eq to value."
   (let ((s-length (length sample-space)))
     (- (entropy target-attribute target-values sample-space)
        (loop for value in possible-values
-          for subspace = (filter sample-space
+          for subspace = (utils:filter sample-space
                                  (attribute-eq-func attribute value))
           when subspace
           summing
             (* (/ (length subspace) s-length)
                (entropy target-attribute target-values subspace))))))
 
-(defun hash-keys (hash-table)
-  "Returns a sequence of hash-table keys"
-  (loop for key being the hash-keys of hash-table
-     collecting key))
-
-(defun hash-maximum (hash-table &key
-                                  (keys (hash-keys hash-table))
-                                  (max-key (first keys)))
-  "Returns the key in hash-table with the largest associated value."
-  (if (null keys)
-      max-key
-      (hash-maximum hash-table
-                    :keys (rest keys)
-                    :max-key (if (> (gethash (first keys) hash-table)
-                                    (gethash max-key hash-table))
-                                 (first keys)
-                                 max-key))))
-
 (defun most-common-value (attribute examples)
   "Returns the most common value of attribute among examples"
-  (hash-maximum
+  (utils:hash-maximum
    (let ((hash (make-hash-table)))
      (progn (loop for ex in examples
                do (setf (gethash (getf ex attribute) hash)
@@ -95,7 +75,7 @@ Otherwise, nil is returned."
        maximizing entropy-gain into max-gain
        finally (return
                  (loop for (attribute . (entropy-gain)) on entropy-gains by #'cddr
-                    when (eql entropy-gain max-gain)
+                    when (= entropy-gain max-gain)
                     do (return attribute))))))
 
 (defun remove-attribute (attribute attribute-seq)
@@ -124,7 +104,7 @@ sample-space gives the training data as ((attribute1 val attribute2 val2 ...) ..
                (cons 'cond
                      (loop for value in (getf attributes-and-values a)
                         for examples = 
-                          (filter sample-space (attribute-eq-func a value))
+                          (utils:filter sample-space (attribute-eq-func a value))
                         collecting
                           `((eq (getf ,p-name ,a) ,value)
                             ,(if (null examples)
@@ -145,69 +125,3 @@ sample-space gives the training data as ((attribute1 val attribute2 val2 ...) ..
        (eval attribute-seq)
        (eval sample-space)
        'item)))
-
-;;; decision tree for and 
-(macroexpand-1 '(define-decision-tree and-tree
-                 :value
-                 '(:true :false)
-               
-                 '(:a (:true :false) :b (:true :false))
-
-                 '((:value :true :a :true :b :true)
-                   (:value :false :a :false :b :true)
-                   (:value :false :a :true :b :false)
-                   (:value :false :a :false :b :false))))
-
-;;; decision tree for or
-(macroexpand-1 '(define-decision-tree or-tree
-                 :value
-                 '(:true :false)
-
-                 '(:a (:true :false) :b (:true :false))
-
-                 '((:value :true :a :true :b :true)
-                   (:value :true :a :true :b :false)
-                   (:value :true :a :false :b :true)
-                   (:value :false :a :false :b :false))))
-
-;;; decision tree for xor
-(format t "~a~%" (macroexpand-1 '(define-decision-tree xor-tree
-                                  :value
-                                  '(:true :false)
-
-                                  '(:a (:true :false) :b (:true :false))
-
-                                  '((:value :false :a :true :b :true)
-                                    (:value :true :a :true :b :false)
-                                    (:value :false :a :false :b :false)
-                                    (:value :true :a :false :b :true)))))
-
-(xor-tree '(:a :true :b :true))
-;;; These are the tests of the various components
-
-;; (most-common-value :parity '((:value 2 :parity :even)
-;;                              (:value 5 :parity :odd)
-;;                              (:value 3 :parity :odd)))
-
-;; (entropy :parity '(:even :odd) '((:value 2 :parity :even)
-;;                                  (:value 2 :parity :even)))
-
-;; (proportion :parity :odd '((:value 2 :parity :even)
-;;                            (:value 2 :parity :even)))
-
-;; (proportion :parity :even '((:value 2 :parity :even)
-;;                             (:value 3 :parity :odd)))
-
-;; (entropy-gains :parity
-;;                '(:even :odd)
-;;                '(:value (2 3 5) :max-likes (:yes :no))
-;;                '((:value 2 :parity :even :max-likes :yes)
-;;                  (:value 5 :parity :odd :max-likes :yes)
-;;                  (:value 3 :parity :odd :max-likes :no)))
-
-;; (best-attribute :parity
-;;                '(:even :odd)
-;;                '(:value (2 3 5) :max-likes (:yes :no))
-;;                '((:value 2 :parity :even :max-likes :yes)
-;;                  (:value 5 :parity :odd :max-likes :yes)
-;;                  (:value 3 :parity :odd :max-likes :no)))
