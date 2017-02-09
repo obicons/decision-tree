@@ -40,15 +40,15 @@
                                     (:value :false :a :false :b :false)
                                     (:value :true :a :false :b :true)))))
 (define-decision-tree xor-tree
-                                  :value
-                                  '(:true :false)
+    :value
+  '(:true :false)
 
-                                  '(:a (:true :false) :b (:true :false))
+  '(:a (:true :false) :b (:true :false))
 
-                                  '((:value :false :a :true :b :true)
-                                    (:value :true :a :true :b :false)
-                                    (:value :false :a :false :b :false)
-                                    (:value :true :a :false :b :true)))
+  '((:value :false :a :true :b :true)
+    (:value :true :a :true :b :false)
+    (:value :false :a :false :b :false)
+    (:value :true :a :false :b :true)))
 
 ;; (xor-tree '(:a :true :b :true))
 
