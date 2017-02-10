@@ -4,6 +4,7 @@
 
 (in-package :tests)
 
+;;; Build process
 ;;(load "~/quicklisp/dists/quicklisp/software/slime-v2.18/swank-loader.lisp")
 ;; (swank-loader:init)
 ;; (asdf:load-system "decision-tree")
