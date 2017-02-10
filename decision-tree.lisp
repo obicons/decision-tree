@@ -118,10 +118,12 @@ sample-space gives the training data as ((attribute1 val attribute2 val2 ...) ..
 
 (defmacro define-decision-tree (name target-attribute target-values
                                 attribute-seq sample-space)
-  `(defun ,name (item)
-     ,(make-decision-tree
-       (eval target-attribute)
-       (eval target-values)
-       (eval attribute-seq)
-       (eval sample-space)
-       'item)))
+  (let ((decision-tree (make-decision-tree 
+                        (eval target-attribute)
+                        (eval target-values)
+                        (eval attribute-seq)
+                        (eval sample-space)
+                        'item)))
+    `(progn (defun ,name (item)
+              ,decision-tree)
+            (defparameter ,name (quote ,decision-tree)))))

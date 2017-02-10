@@ -4,17 +4,32 @@
 
 (in-package :tests)
 
-;;; decision tree for and 
-(macroexpand-1 '(define-decision-tree and-tree
-                 :value
-                 '(:true :false)
-               
-                 '(:a (:true :false) :b (:true :false))
+;;(load "~/quicklisp/dists/quicklisp/software/slime-v2.18/swank-loader.lisp")
+;; (swank-loader:init)
+;; (asdf:load-system "decision-tree")
 
-                 '((:value :true :a :true :b :true)
-                   (:value :false :a :false :b :true)
-                   (:value :false :a :true :b :false)
-                   (:value :false :a :false :b :false))))
+
+;;; decision tree for and 
+(format t "~a~%" (macroexpand-1 '(define-decision-tree and-tree
+                                  :value
+                                  '(:true :false)
+                                  
+                                  '(:a (:true :false) :b (:true :false))
+
+                                  '((:value :true :a :true :b :true)
+                                    (:value :false :a :false :b :true)
+                                    (:value :false :a :true :b :false)
+                                    (:value :false :a :false :b :false)))))
+(define-decision-tree and-tree
+    :value
+  '(:true :false)
+                                  
+  '(:a (:true :false) :b (:true :false))
+
+  '((:value :true :a :true :b :true)
+    (:value :false :a :false :b :true)
+    (:value :false :a :true :b :false)
+    (:value :false :a :false :b :false)))
 
 ;;; decision tree for or
 (macroexpand-1 '(define-decision-tree or-tree
@@ -39,6 +54,7 @@
                                     (:value :true :a :true :b :false)
                                     (:value :false :a :false :b :false)
                                     (:value :true :a :false :b :true)))))
+
 (define-decision-tree xor-tree
     :value
   '(:true :false)
@@ -51,8 +67,6 @@
     (:value :true :a :false :b :true)))
 
 ;; (xor-tree '(:a :true :b :true))
-
-;;; These are the tests of the various components
 
 (decision-tree::most-common-value :parity '((:value 2 :parity :even)
                                             (:value 5 :parity :odd)
@@ -82,6 +96,11 @@
                                  (:value 3 :parity :odd :max-likes :no)))
 
 (defun main ()
-  (format t "Hello, world!~%"))
+  (sb-thread:make-thread (lambda ()
+                           (swank:create-server :port 5000 :dont-close t)))
+  (loop
+     for input = (read)
+     do (progn (format t "~a~%" (xor-tree input))
+               (finish-output))))
 
 (save-lisp-and-die "main" :executable t :toplevel #'main)
